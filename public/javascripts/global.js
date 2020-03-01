@@ -1,5 +1,7 @@
 //current image index
 var currentImg = 0;
+var drawingIndex = ['500A','500B','1A','1B','3A','3B','10A','10B'];
+var drawingLabel = ['500ms A','500ms B','1s A','1s B','3s A','3s B','10s A','10s B']
 
 $(document).ready(function () {
 	//1. show all visualization ordered by memorability score
@@ -7,12 +9,17 @@ $(document).ready(function () {
 		showVisualization(data);
 	});
 
-	//2. draw correlation
+	//2. presenting the drawings of visualizations
+	d3.csv('public/data/drawing_data.csv', function(error, data){
+		showDrawing(data);
+	});
+
+	//3. draw correlation
 	d3.csv('public/data/biomedical_dataset.csv', function (error, data) {
 		drawCorrelation(data, 'Number of distinct color names', 'score');
 	});
 
-	//3. blind event on ratio change
+	//4. blind event on ratio change
 	$('#x-select').on('change', function () {
 		//get x value and y value
 		var xValue = $('#x-select').val();
@@ -80,8 +87,6 @@ $(document).ready(function () {
 			});
 		}
 	});
-
-
 
 });
 
@@ -318,5 +323,82 @@ function drawCorrelation(data, xLabel, yLabel) {
 		.style("opacity", "0.8")
 		.attr('r', 5);
 
+}
+
+function showDrawing(data){
+	for (let i = 0; i < data.length; i++) {
+		let img_thumburl = data[i].image_url;
+		let img_url = data[i].image_url;
+		let img_name = data[i].imagename;
+		let score = parseFloat(data[i].score).toFixed(2);
+		let gist_url = data[i].gist_url;
+		//padding
+		generatePaddingDiv('drawing-gallery');
+		//rendering the original image
+		let img_div = document.createElement("div");
+		img_div.className = "col-md-1 image-div";
+		img_div.innerHTML = `
+		<div class="card image-grid">
+			<div class = "panel-thumbnail img-panel">
+				<div class="d-block mb-3 image-a" id='ori${i}'>
+					<img class = "img-fluid img-thumbnial" src=${img_url} alt="">
+				</div>
+			</div>
+			<div class = "card-body score-box">
+				<p class="score-text">score: ${score}</p>
+			</div>
+		</div>
+		`;
+		document.getElementById('drawing-gallery').appendChild(img_div);
+		//rendering the drawings
+		for(let j = 0; j < drawingIndex.length; j++){
+			let draw_div = document.createElement("div");
+			let attr = drawingIndex[j];
+			let draw_url = data[i][attr];
+			let label = drawingLabel[j];
+			draw_div.className = "col-md-1 image-div";
+			draw_div.innerHTML = `
+			<div class="card image-grid">
+				<div class = "panel-thumbnail img-panel">
+					<div class="d-block mb-3 image-a" id='ori${i}-${j}'>
+						<img class = "img-fluid img-thumbnial" src=${draw_url} alt="">
+					</div>
+				</div>
+				<div class = "card-body score-box">
+					<p class="score-text">${label}</p>
+				</div>
+			</div>
+			`;
+			document.getElementById('drawing-gallery').appendChild(draw_div);
+		}
+		//rendering gist
+		let gist_div = document.createElement("div");
+		gist_div.className = "col-md-1 image-div";
+		gist_div.innerHTML = `
+		<div class="card image-grid">
+			<div class = "panel-thumbnail img-panel">
+				<div class="d-block mb-3 image-a" id='gist${i}'>
+					<img class = "img-fluid img-thumbnial" src=${gist_url} alt="">
+				</div>
+			</div>
+			<div class = "card-body score-box">
+				<p class="score-text">gist</p>
+			</div>
+		</div>
+		`;
+		document.getElementById('drawing-gallery').appendChild(gist_div);
+		//padding
+		generatePaddingDiv('drawing-gallery');
+		
+		
+
+
+	}
+}
+
+function generatePaddingDiv(eleID){
+	let p_div = document.createElement("div");
+	p_div.className = "col-md-1 image-div";
+	document.getElementById(eleID).appendChild(p_div);
 }
 
